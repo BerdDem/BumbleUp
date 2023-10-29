@@ -2,7 +2,7 @@
 
 namespace Source
 {
-    public class CameraController : MonoBehaviour
+    public class CameraController : MonoBehaviour, IPositionModifier
     {
         [SerializeField] private Vector3 _targetOffsetPosition;
         [SerializeField] private float _positionLerpSpeed;
@@ -23,6 +23,19 @@ namespace Source
             targetPosition = _target.position + _targetOffsetPosition;
             smoothPosition = Vector3.Lerp(smoothPosition, targetPosition, Time.deltaTime * _positionLerpSpeed);
             transform.position = smoothPosition;
+        }
+
+        public void AddToPosition(Vector3 deltaPosition)
+        {
+            smoothPosition += deltaPosition;
+            targetPosition += deltaPosition;
+        }
+        
+        public void ResetPositionToPlayer()
+        {
+            targetPosition = _target.position + _targetOffsetPosition;
+            smoothPosition = targetPosition;
+            transform.position = targetPosition;
         }
     }
 }

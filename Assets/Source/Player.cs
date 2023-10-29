@@ -3,20 +3,29 @@ using UnityEngine;
 
 namespace Source
 {
-    public class Player : MonoBehaviour
+    public class Player : MonoBehaviour, IPositionModifier
     {
         public Action moveNextStep;
+        public Action playerDeathNotify;
+        public Vector3 offsetPosition => _offsetPosition;
 
         [SerializeField] private float _height = 1.0f;
         [SerializeField] private float _speed = 5.0f;
+        [SerializeField] private Vector3 _offsetPosition = new Vector3(0, 0.5f, 0);
         
-        private Step[] _stepObjects;
+        private Map _map;
         private int _stepIndex;
         private int _stepSegment;
+        
+        private Vector3 startPosition;
+        private Vector3 endPosition;
+        private float journeyTime;
+        private float journeyLength;
+        private bool _jumpProcess;
 
-        public void SetSteps(Step[] stepObjects, int stepIndex, int stepSegment)
+        public void Initialize(Map map, int stepIndex, int stepSegment)
         {
-            _stepObjects = stepObjects;
+            _map = map;
             _stepIndex = stepIndex;
             _stepSegment = stepSegment;
         }
@@ -27,48 +36,62 @@ namespace Source
             
             if (Input.GetKeyDown(KeyCode.Space))
             {
-                _stepIndex = _stepObjects[_stepIndex].nextStepIndex;
-                PlayerStartJump(_stepObjects[_stepIndex].GetSegmentCenter(_stepSegment));
+                _stepIndex = _map.steps[_stepIndex].upperStepIndex;
+                StartJump(_map.steps[_stepIndex].GetSegmentCenter(_stepSegment));
                 moveNextStep?.Invoke();
             }
 
             if (Input.GetKeyDown(KeyCode.RightArrow))
             {
                 _stepSegment++;
-                PlayerStartJump(_stepObjects[_stepIndex].GetSegmentCenter(_stepSegment));
+                StartJump(_map.steps[_stepIndex].GetSegmentCenter(_stepSegment));
             }
 
             if (Input.GetKeyDown(KeyCode.LeftArrow))
             {
                 _stepSegment--;
-                PlayerStartJump(_stepObjects[_stepIndex].GetSegmentCenter(_stepSegment));
+                StartJump(_map.steps[_stepIndex].GetSegmentCenter(_stepSegment));
             }
 
             if (_jumpProcess)
             {
-                PlayerJumping();
+                Jumping();
             }
         }
+
+        public void TakingDamage()
+        {
+            playerDeathNotify?.Invoke();
+        }
         
-        //TODO: refactoring shit code 
-        private Vector3 startPosition;
-        private Vector3 endPosition;
-        private float journeyTime;
-        private float journeyLength;
-        private bool _jumpProcess;
-        private void PlayerStartJump(Vector3 targetPosition)
+        public void Restart(int stepIndex, int stepSegment)
+        {
+            _jumpProcess = false;
+            _stepIndex = stepIndex;
+            _stepSegment = stepSegment;
+            transform.position = _map.steps[stepIndex].GetSegmentCenter(stepSegment) + _offsetPosition;
+        }
+        
+        public void AddToPosition(Vector3 deltaPosition)
+        {
+            transform.position += deltaPosition;
+            startPosition += deltaPosition;
+            endPosition += deltaPosition;
+        }
+        
+        private void StartJump(Vector3 targetPosition)
         {
             journeyTime = 0;
             _jumpProcess = true;
             startPosition = transform.position;
-             endPosition = targetPosition;
+            endPosition = targetPosition + _offsetPosition;
             journeyLength = Vector3.Distance(startPosition, endPosition);
         }
-        
-        private void PlayerJumping()
+
+        private void Jumping()
         {
             journeyTime += Time.deltaTime;
-            
+
             float distanceCovered = journeyTime * _speed;
             float fractionOfJourney = distanceCovered / journeyLength;
 
