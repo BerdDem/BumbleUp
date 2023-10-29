@@ -1,30 +1,31 @@
-﻿using System;
+﻿using Source.Data;
 using UnityEngine;
 
-namespace Source
+namespace Source.Level
 {
     public class Step
     {
         public int lowerStepIndex { get; }
         public int upperStepIndex { get; }
         public int index { get; }
-        public int segmentCount => _segmentLocalMiddlePositions.Length;
         public GameObject gameObject { get; }
         
         private readonly Vector3[] _segmentLocalMiddlePositions;
+        private readonly StepData _stepData;
 
-        public Step(GameObject gameObject, int segmentCount, int index, int lowerStepIndex, int upperStepIndex)
+        public Step(GameObject gameObject, DataManager dataManager, int index, int lowerStepIndex, int upperStepIndex)
         { 
             this.gameObject = gameObject;
-            _segmentLocalMiddlePositions = new Vector3[segmentCount];
+            _stepData = dataManager.stepData;
+            _segmentLocalMiddlePositions = new Vector3[_stepData.segmentCount];
             this.index = index;
             this.lowerStepIndex = lowerStepIndex;
             this.upperStepIndex = upperStepIndex;
             
-            SetupSegmentPositions(segmentCount);
+            SetupSegmentPositions();
         }
 
-        private void SetupSegmentPositions(int segmentCount)
+        private void SetupSegmentPositions()
         {
             Vector3 localScale = gameObject.transform.localScale;
             Quaternion rotation = gameObject.transform.rotation;
@@ -33,7 +34,7 @@ namespace Source
             Vector3 rightStepPosition = rotation * new Vector3(localScale.x / 2, localScale.y / 2, 0);;
 
             float stepDistance = Vector3.Distance(leftStepPosition, rightStepPosition);
-            float segmentDistanceBetweenEdge = stepDistance / segmentCount;
+            float segmentDistanceBetweenEdge = stepDistance / _stepData.segmentCount;
             Vector3 middlePosition = leftStepPosition + rotation * new Vector3(segmentDistanceBetweenEdge / 2, 0, 0);
 
             for (int i = 0; i < _segmentLocalMiddlePositions.Length; i++)

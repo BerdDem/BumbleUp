@@ -1,7 +1,8 @@
 ﻿using System;
+using Source.Data;
 using UnityEngine;
 
-namespace Source
+namespace Source.Level
 {
     public class Map : IPositionModifier
     {
@@ -11,15 +12,13 @@ namespace Source
         public Step bottomStep { get; private set; }
         public Step[] steps { get; }
         
-        private const int HeightBetweenSteps = 1;
-        
         private Vector3 _topStepPosition;
-        private readonly Vector3 _stepSize;
-        
-        public Map(Step[] steps, Vector3 stepSize)
+        private readonly DataManager _dataManager;
+
+        public Map(Step[] steps, DataManager dataManager)
         {
             this.steps = steps;
-            _stepSize = stepSize;
+            _dataManager = dataManager;
             
             bottomStep = this.steps[0];
             topStep = this.steps[this.steps.Length - 1];
@@ -28,12 +27,12 @@ namespace Source
         }
         
         public void MoveBottomStepToTop()
-        {
+          {
             Step movingStep = bottomStep;
             bottomStep = steps[bottomStep.upperStepIndex];
             topStep = movingStep;
 
-            _topStepPosition += new Vector3(0, HeightBetweenSteps, _stepSize.z);
+            _topStepPosition += new Vector3(0, _dataManager.mapData.heightBetweenSteps, _dataManager.stepData.stepSize.z);
             topStep.gameObject.transform.position = _topStepPosition;
             
             moveStep?.Invoke();
@@ -56,11 +55,12 @@ namespace Source
             foreach (Step step in steps)
             {
                 step.gameObject.transform.position = _topStepPosition;
-                _topStepPosition += new Vector3(0, HeightBetweenSteps, _stepSize.z);
+                _topStepPosition += new Vector3(0, _dataManager.mapData.heightBetweenSteps, _dataManager.stepData.stepSize.z);
             }
             
             bottomStep = steps[0];
             topStep = steps[steps.Length - 1];
+            _topStepPosition = topStep.gameObject.transform.position;
         }
     }
 }

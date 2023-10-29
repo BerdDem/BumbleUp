@@ -1,10 +1,14 @@
 using System.Collections.Generic;
+using Source.Data;
+using Source.Enemies;
+using Source.Level;
 using UnityEngine;
 
 namespace Source
 {
     public class Location : MonoBehaviour
     {
+        [SerializeField] private DataManager _dataManager;
         [SerializeField] private CameraController _cameraController;
         [SerializeField] private EnemySpawner _enemySpawner;
         
@@ -17,11 +21,7 @@ namespace Source
         [SerializeField] private int _segmentCount = 7;
         [SerializeField] private Vector3 _stepSize = new Vector3(12, 4, 2);
 
-        private const int StepCount = 20;
-        private const int StartStep = 4;
-        private const int StartSegment = 3;
-
-        private const int StepsCompleteToTeleportMap = 10;
+        private const int StepsCompleteToTeleportMap = 10000;
 
         private List<IPositionModifier> _positionModifiers = new List<IPositionModifier>();
 
@@ -33,11 +33,11 @@ namespace Source
 
         private void Awake()
         {
-            _map = new Map(BuildLocation(), _stepSize);
+            _map = new Map(BuildLocation(), _dataManager);
             SpawnPlayer();
             
             _cameraController.SetTarget(_player.transform);
-            _enemySpawner.Initialize(_map);
+            _enemySpawner.Initialize(_map, _dataManager);
             
             _player.moveNextStep += MoveBottomStepToTop;
             _player.playerDeathNotify += Restart;
@@ -48,7 +48,7 @@ namespace Source
         private Step[] BuildLocation()
         {
             _nextStepPosition = Vector3.zero;
-            Step[] steps = new Step[StepCount];
+            Step[] steps = new Step[_dataManager.mapData.stepsCount];
             
             for (int i = 0; i < steps.Length; i++)
             {
@@ -58,7 +58,7 @@ namespace Source
                 int lowerStepIndex = CycleInt(-1, i, steps.Length);
                 int upperStepIndex = CycleInt(1, i, steps.Length);
 
-                Step step = new Step(stepObject, _segmentCount, i, lowerStepIndex, upperStepIndex);
+                Step step = new Step(stepObject, _dataManager, i, lowerStepIndex, upperStepIndex);
                 steps[i] = step;
                 
                 _nextStepPosition += new Vector3(0, _heightBetweenSteps, _stepSize.z);
@@ -69,12 +69,12 @@ namespace Source
         
         private void SpawnPlayer()
         {
-            Vector3 playerStartPosition = _map.steps[StartStep].GetSegmentCenter(StartSegment);
+            Vector3 playerStartPosition = _map.steps[_dataManager.playerData.startStep].GetSegmentCenter(_dataManager.playerData.startSegment);
             GameObject playerObject = Instantiate(_playerPrefab, playerStartPosition, Quaternion.identity, transform);
             
             _player = playerObject.GetComponent<Player>();
             _player.transform.position += _player.offsetPosition;
-            _player.Initialize(_map, StartStep, StartSegment);
+            _player.Initialize(_map, _dataManager);
         }
         
         private void AddPositionModifier()
@@ -94,7 +94,6 @@ namespace Source
             _stepsCompleteCount++;
 
             _map.MoveBottomStepToTop();
-            _enemySpawner.SpawnEnemy(_map.topStep.index);
 
             if (_stepsCompleteCount >= StepsCompleteToTeleportMap)
             {
@@ -128,7 +127,7 @@ namespace Source
         {
             _map.Restart();
             _enemySpawner.DeactivateAllEnemy();
-            _player.Restart(StartStep, StartSegment);
+            _player.Restart();
             _cameraController.ResetPositionToPlayer();
         }
 

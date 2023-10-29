@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace Source
+namespace Source.Level
 {
     public interface IPositionModifier
     {

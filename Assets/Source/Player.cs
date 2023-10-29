@@ -1,4 +1,6 @@
 ﻿using System;
+using Source.Data;
+using Source.Level;
 using UnityEngine;
 
 namespace Source
@@ -12,7 +14,8 @@ namespace Source
         [SerializeField] private float _height = 1.0f;
         [SerializeField] private float _speed = 5.0f;
         [SerializeField] private Vector3 _offsetPosition = new Vector3(0, 0.5f, 0);
-        
+
+        private DataManager _dataManager;
         private Map _map;
         private int _stepIndex;
         private int _stepSegment;
@@ -23,11 +26,13 @@ namespace Source
         private float journeyLength;
         private bool _jumpProcess;
 
-        public void Initialize(Map map, int stepIndex, int stepSegment)
+        public void Initialize(Map map, DataManager dataManager)
         {
             _map = map;
-            _stepIndex = stepIndex;
-            _stepSegment = stepSegment;
+            _dataManager = dataManager;
+
+            _stepIndex = dataManager.playerData.startStep;
+            _stepSegment = dataManager.playerData.startSegment;
         }
 
         private void Update()
@@ -64,12 +69,12 @@ namespace Source
             playerDeathNotify?.Invoke();
         }
         
-        public void Restart(int stepIndex, int stepSegment)
+        public void Restart()
         {
             _jumpProcess = false;
-            _stepIndex = stepIndex;
-            _stepSegment = stepSegment;
-            transform.position = _map.steps[stepIndex].GetSegmentCenter(stepSegment) + _offsetPosition;
+            _stepIndex = _dataManager.playerData.startStep;
+            _stepSegment = _dataManager.playerData.startSegment;
+            transform.position = _map.steps[_stepIndex].GetSegmentCenter(_stepSegment) + _offsetPosition;
         }
         
         public void AddToPosition(Vector3 deltaPosition)

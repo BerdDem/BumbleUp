@@ -1,22 +1,22 @@
-﻿using System;
+﻿using Source.Data;
+using Source.Level;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
-namespace Source
+namespace Source.Enemies
 {
     public class Enemy : MonoBehaviour, IPositionModifier
     {
-        public Action<Enemy> changePosition;
-
-        public int stepIndex { get; private set; }
-        public int segmentIndex { get; private set; }
-
         [SerializeField] private Vector3 _offsetPosition = new Vector3(0, 0.5f, 0);
         [SerializeField] private Vector2 _timeRangeToMove = new Vector2(1, 2);
         [SerializeField] private float _height = 1.0f;
         [SerializeField] private float _speed = 5.0f;
 
         private Map _map;
+        private EnemyData _enemyData;
+        
+        private int _stepIndex;
+        private int _segmentIndex;
         
         private float _timeToMove;
         private float _currentTimeToMove;
@@ -27,17 +27,18 @@ namespace Source
         private float journeyTime;
         private float journeyLength;
 
-        public void Initialize(Map map)
+        public void Initialize(Map map, DataManager dataManager)
         {
             _map = map;
+            _enemyData = dataManager.enemyData;
         }
 
         public void Activate(int stepIndex, int segmentIndex)
         {
-            this.stepIndex = stepIndex;
-            this.segmentIndex = segmentIndex;
+            _stepIndex = stepIndex;
+            _segmentIndex = segmentIndex;
 
-            _timeToMove = Random.Range(_timeRangeToMove.x, _timeRangeToMove.y);
+            _timeToMove = Random.Range(_enemyData.timeToMoveRange.x, _enemyData.timeToMoveRange.y);
             _currentTimeToMove = 0;
 
             gameObject.transform.position = _map.steps[stepIndex].GetSegmentCenter(segmentIndex) + _offsetPosition;
@@ -73,7 +74,7 @@ namespace Source
 
         private void StartMoving()
         {
-            int lowerStepIndex = _map.steps[stepIndex].lowerStepIndex;
+            int lowerStepIndex = _map.steps[_stepIndex].lowerStepIndex;
 
             if (lowerStepIndex == _map.bottomStep.index)
             {
@@ -81,17 +82,17 @@ namespace Source
                 return;
             }
             
-            _timeToMove = Random.Range(_timeRangeToMove.x, _timeRangeToMove.y);
+            _timeToMove = Random.Range(_enemyData.timeToMoveRange.x, _enemyData.timeToMoveRange.y);
             _currentTimeToMove = 0;
             
             journeyTime = 0;
             _movingProcess = true;
             startPosition = transform.position;
             
-            endPosition = _map.steps[lowerStepIndex].GetSegmentCenter(segmentIndex) + _offsetPosition;
+            endPosition = _map.steps[lowerStepIndex].GetSegmentCenter(_segmentIndex) + _offsetPosition;
             journeyLength = Vector3.Distance(startPosition, endPosition);
 
-            stepIndex = lowerStepIndex;
+            _stepIndex = lowerStepIndex;
         }
         
         private void Moving()
@@ -119,7 +120,7 @@ namespace Source
         
         private void ChangePlayerStep()
         {
-            if (stepIndex == _map.bottomStep.index)
+            if (_stepIndex == _map.bottomStep.index)
             {
                 Deactivate();
             }
