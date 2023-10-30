@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using Source.Data;
 using Source.Enemies;
 using Source.Level;
+using Source.UI;
 using UnityEngine;
 
 namespace Source
@@ -11,19 +12,15 @@ namespace Source
         [SerializeField] private DataManager _dataManager;
         [SerializeField] private CameraController _cameraController;
         [SerializeField] private EnemySpawner _enemySpawner;
+        [SerializeField] private UIStepCount _uiStepCount;
         
         [Header("Prefabs")]
         [SerializeField] private GameObject _stepPrefab;
         [SerializeField] private GameObject _playerPrefab;
 
-        [Header("Step params")]
-        [SerializeField] private float _heightBetweenSteps = 1;
-        [SerializeField] private int _segmentCount = 7;
-        [SerializeField] private Vector3 _stepSize = new Vector3(12, 4, 2);
+        private const int StepsCompleteToTeleportMap = 1000;
 
-        private const int StepsCompleteToTeleportMap = 10000;
-
-        private List<IPositionModifier> _positionModifiers = new List<IPositionModifier>();
+        private readonly List<IPositionModifier> _positionModifiers = new List<IPositionModifier>();
 
         private Map _map;
         private Player _player;
@@ -38,6 +35,7 @@ namespace Source
             
             _cameraController.SetTarget(_player.transform);
             _enemySpawner.Initialize(_map, _dataManager);
+            _uiStepCount.Initialize(_player);
             
             _player.moveNextStep += MoveBottomStepToTop;
             _player.playerDeathNotify += Restart;
@@ -53,7 +51,7 @@ namespace Source
             for (int i = 0; i < steps.Length; i++)
             {
                 GameObject stepObject = Instantiate(_stepPrefab, _nextStepPosition, Quaternion.identity, transform);
-                stepObject.transform.localScale = _stepSize;
+                stepObject.transform.localScale = _dataManager.stepData.stepSize;
 
                 int lowerStepIndex = CycleInt(-1, i, steps.Length);
                 int upperStepIndex = CycleInt(1, i, steps.Length);
@@ -61,7 +59,7 @@ namespace Source
                 Step step = new Step(stepObject, _dataManager, i, lowerStepIndex, upperStepIndex);
                 steps[i] = step;
                 
-                _nextStepPosition += new Vector3(0, _heightBetweenSteps, _stepSize.z);
+                _nextStepPosition += new Vector3(0, _dataManager.mapData.heightBetweenSteps, _dataManager.stepData.stepSize.z);
             }
 
             return steps;

@@ -37,27 +37,6 @@ namespace Source
 
         private void Update()
         {
-            //TODO: Change Input, add limit for moving on segments
-            
-            if (Input.GetKeyDown(KeyCode.Space))
-            {
-                _stepIndex = _map.steps[_stepIndex].upperStepIndex;
-                StartJump(_map.steps[_stepIndex].GetSegmentCenter(_stepSegment));
-                moveNextStep?.Invoke();
-            }
-
-            if (Input.GetKeyDown(KeyCode.RightArrow))
-            {
-                _stepSegment++;
-                StartJump(_map.steps[_stepIndex].GetSegmentCenter(_stepSegment));
-            }
-
-            if (Input.GetKeyDown(KeyCode.LeftArrow))
-            {
-                _stepSegment--;
-                StartJump(_map.steps[_stepIndex].GetSegmentCenter(_stepSegment));
-            }
-
             if (_jumpProcess)
             {
                 Jumping();
@@ -82,6 +61,19 @@ namespace Source
             transform.position += deltaPosition;
             startPosition += deltaPosition;
             endPosition += deltaPosition;
+        }
+
+        public void Jump()
+        {
+            _stepIndex = _map.steps[_stepIndex].upperStepIndex;
+            StartJump(_map.steps[_stepIndex].GetSegmentCenter(_stepSegment));
+            moveNextStep?.Invoke();
+        }
+
+        public void JumpToSegment(int segmentDelta)
+        {
+            _stepSegment += segmentDelta;
+            StartJump(_map.steps[_stepIndex].GetSegmentCenter(_stepSegment));
         }
         
         private void StartJump(Vector3 targetPosition)
