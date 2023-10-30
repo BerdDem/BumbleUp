@@ -12,5 +12,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3d3aceac79bd48b8805bb7175151afc9, type: 3}
   m_Name: MapData
   m_EditorClassIdentifier: 
-  stepsCount: 20
+  stepsCount: 30
   heightBetweenSteps: 1

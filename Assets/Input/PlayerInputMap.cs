@@ -44,6 +44,24 @@ public partial class @PlayerInputMap: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": true
+                },
+                {
+                    ""name"": ""PrimaryContact"",
+                    ""type"": ""PassThrough"",
+                    ""id"": ""103eb397-5f6a-4f21-a186-b037bcacfe94"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": ""Press"",
+                    ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""PrimaryPosition"",
+                    ""type"": ""PassThrough"",
+                    ""id"": ""6dc82366-8651-4ff1-8211-91d6e22d3ae5"",
+                    ""expectedControlType"": ""Vector2"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
                 }
             ],
             ""bindings"": [
@@ -54,17 +72,6 @@ public partial class @PlayerInputMap: IInputActionCollection2, IDisposable
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": ""PC"",
-                    ""action"": ""Jump"",
-                    ""isComposite"": false,
-                    ""isPartOfComposite"": false
-                },
-                {
-                    ""name"": """",
-                    ""id"": ""84311f35-ac73-459c-8acc-7647f6235e64"",
-                    ""path"": ""<Touchscreen>/Press"",
-                    ""interactions"": ""Tap"",
-                    ""processors"": """",
-                    ""groups"": ""Phone"",
                     ""action"": ""Jump"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
@@ -103,37 +110,26 @@ public partial class @PlayerInputMap: IInputActionCollection2, IDisposable
                     ""isPartOfComposite"": true
                 },
                 {
-                    ""name"": ""Swipe"",
-                    ""id"": ""9006e082-e63e-47e6-b20c-9e081689485e"",
-                    ""path"": ""1DAxis"",
-                    ""interactions"": ""Tap"",
+                    ""name"": """",
+                    ""id"": ""04a8b3d2-9878-4f21-9995-275c21cc1a72"",
+                    ""path"": ""<Touchscreen>/primaryTouch/press"",
+                    ""interactions"": """",
                     ""processors"": """",
-                    ""groups"": """",
-                    ""action"": ""JumpToSegment"",
-                    ""isComposite"": true,
+                    ""groups"": ""Phone"",
+                    ""action"": ""PrimaryContact"",
+                    ""isComposite"": false,
                     ""isPartOfComposite"": false
                 },
                 {
-                    ""name"": ""negative"",
-                    ""id"": ""8a773d80-6cbc-46b6-8011-11be0a0d7434"",
-                    ""path"": ""<Touchscreen>/delta/left"",
+                    ""name"": """",
+                    ""id"": ""65a3b2f0-0951-47d8-be75-af8a1b8ff323"",
+                    ""path"": ""<Touchscreen>/primaryTouch/position"",
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": ""Phone"",
-                    ""action"": ""JumpToSegment"",
+                    ""action"": ""PrimaryPosition"",
                     ""isComposite"": false,
-                    ""isPartOfComposite"": true
-                },
-                {
-                    ""name"": ""positive"",
-                    ""id"": ""e8533317-ef8b-48fd-ac75-828ae169644a"",
-                    ""path"": ""<Touchscreen>/primaryTouch/delta/right"",
-                    ""interactions"": """",
-                    ""processors"": """",
-                    ""groups"": ""Phone"",
-                    ""action"": ""JumpToSegment"",
-                    ""isComposite"": false,
-                    ""isPartOfComposite"": true
+                    ""isPartOfComposite"": false
                 }
             ]
         }
@@ -167,6 +163,8 @@ public partial class @PlayerInputMap: IInputActionCollection2, IDisposable
         m_Player = asset.FindActionMap("Player", throwIfNotFound: true);
         m_Player_Jump = m_Player.FindAction("Jump", throwIfNotFound: true);
         m_Player_JumpToSegment = m_Player.FindAction("JumpToSegment", throwIfNotFound: true);
+        m_Player_PrimaryContact = m_Player.FindAction("PrimaryContact", throwIfNotFound: true);
+        m_Player_PrimaryPosition = m_Player.FindAction("PrimaryPosition", throwIfNotFound: true);
     }
 
     public void Dispose()
@@ -230,12 +228,16 @@ public partial class @PlayerInputMap: IInputActionCollection2, IDisposable
     private List<IPlayerActions> m_PlayerActionsCallbackInterfaces = new List<IPlayerActions>();
     private readonly InputAction m_Player_Jump;
     private readonly InputAction m_Player_JumpToSegment;
+    private readonly InputAction m_Player_PrimaryContact;
+    private readonly InputAction m_Player_PrimaryPosition;
     public struct PlayerActions
     {
         private @PlayerInputMap m_Wrapper;
         public PlayerActions(@PlayerInputMap wrapper) { m_Wrapper = wrapper; }
         public InputAction @Jump => m_Wrapper.m_Player_Jump;
         public InputAction @JumpToSegment => m_Wrapper.m_Player_JumpToSegment;
+        public InputAction @PrimaryContact => m_Wrapper.m_Player_PrimaryContact;
+        public InputAction @PrimaryPosition => m_Wrapper.m_Player_PrimaryPosition;
         public InputActionMap Get() { return m_Wrapper.m_Player; }
         public void Enable() { Get().Enable(); }
         public void Disable() { Get().Disable(); }
@@ -251,6 +253,12 @@ public partial class @PlayerInputMap: IInputActionCollection2, IDisposable
             @JumpToSegment.started += instance.OnJumpToSegment;
             @JumpToSegment.performed += instance.OnJumpToSegment;
             @JumpToSegment.canceled += instance.OnJumpToSegment;
+            @PrimaryContact.started += instance.OnPrimaryContact;
+            @PrimaryContact.performed += instance.OnPrimaryContact;
+            @PrimaryContact.canceled += instance.OnPrimaryContact;
+            @PrimaryPosition.started += instance.OnPrimaryPosition;
+            @PrimaryPosition.performed += instance.OnPrimaryPosition;
+            @PrimaryPosition.canceled += instance.OnPrimaryPosition;
         }
 
         private void UnregisterCallbacks(IPlayerActions instance)
@@ -261,6 +269,12 @@ public partial class @PlayerInputMap: IInputActionCollection2, IDisposable
             @JumpToSegment.started -= instance.OnJumpToSegment;
             @JumpToSegment.performed -= instance.OnJumpToSegment;
             @JumpToSegment.canceled -= instance.OnJumpToSegment;
+            @PrimaryContact.started -= instance.OnPrimaryContact;
+            @PrimaryContact.performed -= instance.OnPrimaryContact;
+            @PrimaryContact.canceled -= instance.OnPrimaryContact;
+            @PrimaryPosition.started -= instance.OnPrimaryPosition;
+            @PrimaryPosition.performed -= instance.OnPrimaryPosition;
+            @PrimaryPosition.canceled -= instance.OnPrimaryPosition;
         }
 
         public void RemoveCallbacks(IPlayerActions instance)
@@ -300,5 +314,7 @@ public partial class @PlayerInputMap: IInputActionCollection2, IDisposable
     {
         void OnJump(InputAction.CallbackContext context);
         void OnJumpToSegment(InputAction.CallbackContext context);
+        void OnPrimaryContact(InputAction.CallbackContext context);
+        void OnPrimaryPosition(InputAction.CallbackContext context);
     }
 }

@@ -12,5 +12,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 061b156ba7534a7888333128ec7b595c, type: 3}
   m_Name: PlayerData
   m_EditorClassIdentifier: 
-  startStep: 5
+  startStep: 8
   startSegment: 3

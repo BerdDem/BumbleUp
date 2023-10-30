@@ -72,7 +72,16 @@ namespace Source
 
         public void JumpToSegment(int segmentDelta)
         {
+            int oldSegment = _stepSegment;
+            
             _stepSegment += segmentDelta;
+            _stepSegment = Mathf.Clamp(_stepSegment, 0, _dataManager.stepData.segmentCount - 1);
+
+            if (oldSegment == _stepSegment)
+            {
+                return;
+            }
+            
             StartJump(_map.steps[_stepIndex].GetSegmentCenter(_stepSegment));
         }
         
